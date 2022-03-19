@@ -1,0 +1,26 @@
+services:
+  cron:
+    image: python:alpine
+
+    # is you use this you dont need the "export" keyword in .env file (like .env.sample)
+    # env_file: .env
+
+    environment:
+      # Your Cloudflare email and the api token
+      # https://developers.cloudflare.com/api/tokens/create/
+      API_USER:
+      API_KEY:
+      # The domain where your dns belongs (zone)
+      #   domain.tld
+      DOMAIN:
+      # The dns that you want to update (record)
+      #   sub.domain.tld
+      DNS:
+
+    volumes:
+      - ./ddns.py:/ddns.py
+
+    # "crond" dont work for wrong ownership so we cant simple copy the file
+    # but if we write the file content we solve the permission issue
+    # https://crontab.guru/every-15-minutes
+    entrypoint: /bin/sh -c "echo '*/15 * * * * python /ddns.py' > /var/spool/cron/crontabs/root && crond -fd8"
