@@ -6,8 +6,12 @@ You need load the `.env` in memory before runs the `ddns.py`. The necessary valu
 
 You can register a cronjob to execute in an interval of choice.
 
+## docker
+
+A tiny alpine image are builded with only the script inside. You only need to set the correct environment variables like in `.env.sample`
+
+`docker run --init --rm --env-file=.env ghcr.io/fabricionaweb/cloudflare-ddns`
+
 ## docker-compose
 
-You can simple run `docker compose up` if the envrionment variables are defined.
-
-The cron schedule is defined in [compose's entrypoint](https://github.com/fabricionaweb/cloudflare-ddns-python/blob/master/compose.yaml#L26), if you want change the time to run.
+You can simple run `docker compose up` if the environment variables are defined.
