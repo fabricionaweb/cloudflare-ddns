@@ -1,0 +1,12 @@
+logger -t hotplug "Running DDNS on interface: $INTERFACE for action: $ACTION"
+
+# only for wan interface and up/update actions
+if [ "$INTERFACE" = "wan" ] && [[ "$ACTION" = "ifup" || "$ACTION" = "ifupdate" ]]; then
+  if [ "$IFUPDATE_ADDRESSES" = 1 ]; then
+    logger -t hotplug "No need to update"
+    exit 0
+  fi
+
+  # https://github.com/fabricionaweb/cloudflare-ddns/blob/master/ddns.sh
+  logger -t hotplug "$(exec /root/ddns.sh 2>&1)"
+fi

@@ -43,6 +43,6 @@ echo "Record ID: ${RECORD_ID}"
 RESULT=$(curl -s -X PATCH "${ENDPOINT}/zones/${ZONE_ID}/dns_records/${RECORD_ID}" \
   -H "Authorization: Bearer ${TOKEN}" \
   -H "Content-Type: application/json" \
-  --data "{\"content\":\"${NET_ADDR}\"}" | jsonfilter -e "@.result")
+  --data "{\"content\":\"${NET_ADDR}\"}" | jsonfilter -e "@['success','errors','messages']")
 
 echo "Result: ${RESULT}"
