@@ -23,12 +23,7 @@ ENDPOINT="https://api.cloudflare.com/client/v4"
 
 # ---
 # gets the ip from internet (works in dhpc mode)
-# sed explained:
-#   -n Do not print the input
-#   -r Regex extended (don't need to escape the parentheses)
-#   \1 The first capture group
-#   /p Print if a replacement was done
-NET_ADDR=$(curl -s -X GET "https://1.1.1.1/cdn-cgi/trace" | sed -nr 's/ip=(\d.+)/\1/p')
+NET_ADDR=$(curl -s -X GET "https://1.1.1.1/cdn-cgi/trace" | awk -F '=' '/ip/{print $2}')
 echo "Current IP: ${NET_ADDR}"
 
 # ---
