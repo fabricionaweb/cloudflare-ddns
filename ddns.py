@@ -4,20 +4,19 @@ from os import environ
 from urllib.request import urlopen, Request
 
 
-domain = environ.get("DOMAIN")
-dns = environ.get("DNS")
-email = environ.get("API_USER")
-token = environ.get("API_KEY")
+zone = environ.get("CF_ZONE")
+record = environ.get("CF_RECORD")
+token = environ.get("CF_TOKEN")
 
 endpoint = "https://api.cloudflare.com/client/v4/zones"
-headers = {"X-Auth-Email": email, "X-Auth-Key": token}
+headers = {"Authorization": f"Bearer {token}"}
 
 
 def get_ip():
     """
     get the ip address of whoever executes the script
     """
-    req = Request("https://cloudflare.com/cdn-cgi/trace")
+    req = Request("https://1.1.1.1/cdn-cgi/trace")
     res = urlopen(req).read().decode()
 
     return re.search(r"ip=(\d.+)", res).group(1)
@@ -25,31 +24,29 @@ def get_ip():
 
 def get_zone_id():
     """
-    get the domain id
+    get the domain (zone) id
     """
-    req = Request(url=endpoint, headers=headers)
+    req = Request(url=f"{endpoint}?name={zone}", headers=headers)
     res = json.loads(urlopen(req).read())
 
-    for zone in res["result"]:
-        if zone["name"] == domain:
-            return zone["id"]
+    return res["result"][0]["id"]
 
 
 def get_record_id(zone_id):
     """
-    get the dns id
+    get the record (sub domain) id
     """
-    req = Request(url=f"{endpoint}/{zone_id}/dns_records", headers=headers)
+    req = Request(url=f"{endpoint}/{zone_id}/dns_records?name={record}",
+                  headers=headers,
+                  )
     res = json.loads(urlopen(req).read())
 
-    for record in res["result"]:
-        if record["name"] == dns:
-            return record["id"]
+    return res["result"][0]["id"]
 
 
-def set_ip(current_ip, zone_id, record_id):
+def update_record(current_ip, zone_id, record_id):
     """
-    set the ip in via cloudflare api
+    update the record
     """
     req = Request(url=f"{endpoint}/{zone_id}/dns_records/{record_id}",
                   data=json.dumps({"content": current_ip}).encode(),
@@ -62,7 +59,7 @@ def set_ip(current_ip, zone_id, record_id):
 
 
 def main():
-    if None in (domain, dns, email, token):
+    if None in (zone, record, token):
         raise ValueError("Missing environment variables")
 
     current_ip = get_ip()
@@ -74,7 +71,7 @@ def main():
     record_id = get_record_id(zone_id)
     print(f"Record ID: {record_id}")
 
-    success, error, messages = set_ip(current_ip, zone_id, record_id)
+    success, error, messages = update_record(current_ip, zone_id, record_id)
 
     if success:
         print("Success")
