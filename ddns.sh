@@ -23,13 +23,13 @@ ENDPOINT="https://api.cloudflare.com/client/v4/zones"
 
 # ---
 # gets the ip from internet (works in dhpc mode)
-NET_ADDR=$(curl -s -X GET "https://1.1.1.1/cdn-cgi/trace" | awk -F '=' '/ip/{print $2}')
+NET_ADDR=$(curl -sS X GET "https://1.1.1.1/cdn-cgi/trace" | awk -F '=' '/ip/{print $2}')
 echo "Current IP: ${NET_ADDR}"
 
 # ---
 # gets the domain zone id
 # https://api.cloudflare.com/#zone-list-zones
-ZONE_ID=$(curl -s -X GET "${ENDPOINT}?name=${ZONE}" \
+ZONE_ID=$(curl -sS X GET "${ENDPOINT}?name=${ZONE}" \
   -H "Authorization: Bearer ${TOKEN}" \
   -H "Content-Type: application/json" | jsonfilter -e "@.result[0].id")
 echo "Zone ID: ${ZONE_ID}"
@@ -37,7 +37,7 @@ echo "Zone ID: ${ZONE_ID}"
 # ---
 # gets the dns record id
 # https://api.cloudflare.com/#dns-records-for-a-zone-list-dns-records
-RECORD_ID=$(curl -s -X GET "${ENDPOINT}/${ZONE_ID}/dns_records?name=${RECORD}" \
+RECORD_ID=$(curl -sS X GET "${ENDPOINT}/${ZONE_ID}/dns_records?name=${RECORD}" \
   -H "Authorization: Bearer ${TOKEN}" \
   -H "Content-Type: application/json" | jsonfilter -e "@.result[0].id")
 echo "Record ID: ${RECORD_ID}"
@@ -45,7 +45,7 @@ echo "Record ID: ${RECORD_ID}"
 # ---
 # updates the dns record
 # https://api.cloudflare.com/#dns-records-for-a-zone-patch-dns-record
-RESULT=$(curl -s -X PATCH "${ENDPOINT}/${ZONE_ID}/dns_records/${RECORD_ID}" \
+RESULT=$(curl -sS X PATCH "${ENDPOINT}/${ZONE_ID}/dns_records/${RECORD_ID}" \
   -H "Authorization: Bearer ${TOKEN}" \
   -H "Content-Type: application/json" \
   --data "{\"content\":\"${NET_ADDR}\"}" | jsonfilter -e "@['success','errors','messages']")
