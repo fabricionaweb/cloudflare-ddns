@@ -21,19 +21,17 @@ def get_ip():
 
     return re.search(r"ip=(\d.+)", res).group(1)
 
-
 def get_zone_id():
     """
     get the domain (zone) id
     https://api.cloudflare.com/#zone-list-zones
     """
     req = Request(url=f"{endpoint}?name={zone}", headers=headers)
-    res = json.loads(urlopen(req).read())
+    res = json.loads(urlopen(req).read())["result"][0]
 
-    return res["result"][0]["id"]
+    return res["id"]
 
-
-def get_record_id(zone_id):
+def get_record_data(zone_id):
     """
     get the record (sub domain) id
     https://api.cloudflare.com/#dns-records-for-a-zone-list-dns-records
@@ -41,18 +39,17 @@ def get_record_id(zone_id):
     req = Request(url=f"{endpoint}/{zone_id}/dns_records?name={record}",
                   headers=headers,
                   )
-    res = json.loads(urlopen(req).read())
+    res = json.loads(urlopen(req).read())["result"][0]
 
-    return res["result"][0]["id"]
+    return [res["id"], res["type"], res["content"]]
 
-
-def update_record(current_ip, zone_id, record_id):
+def update_record(content, zone_id, record_id):
     """
     update the record
     https://api.cloudflare.com/#dns-records-for-a-zone-patch-dns-record
     """
     req = Request(url=f"{endpoint}/{zone_id}/dns_records/{record_id}",
-                  data=json.dumps({"content": current_ip}).encode(),
+                  data=json.dumps({"content": content}).encode(),
                   headers=headers,
                   method="PATCH",
                   )
@@ -71,8 +68,17 @@ def main():
     zone_id = get_zone_id()
     print(f"Zone ID: {zone_id}")
 
-    record_id = get_record_id(zone_id)
+    record_id, record_type, record_address = get_record_data(zone_id)
     print(f"Record ID: {record_id}")
+    print(f"Record Type: {record_type}")
+    print(f"Record Address: {record_address}")
+
+    # Only updates record type A
+    if record_type != 'A': raise ValueError("Zone is not a valid A record")
+
+    if current_ip == record_address:
+      print("Dont need to update")
+      return
 
     success, error, messages = update_record(current_ip, zone_id, record_id)
 
