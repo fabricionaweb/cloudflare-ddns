@@ -25,6 +25,7 @@ def get_ip():
 def get_zone_id():
     """
     get the domain (zone) id
+    https://api.cloudflare.com/#zone-list-zones
     """
     req = Request(url=f"{endpoint}?name={zone}", headers=headers)
     res = json.loads(urlopen(req).read())
@@ -35,6 +36,7 @@ def get_zone_id():
 def get_record_id(zone_id):
     """
     get the record (sub domain) id
+    https://api.cloudflare.com/#dns-records-for-a-zone-list-dns-records
     """
     req = Request(url=f"{endpoint}/{zone_id}/dns_records?name={record}",
                   headers=headers,
@@ -47,6 +49,7 @@ def get_record_id(zone_id):
 def update_record(current_ip, zone_id, record_id):
     """
     update the record
+    https://api.cloudflare.com/#dns-records-for-a-zone-patch-dns-record
     """
     req = Request(url=f"{endpoint}/{zone_id}/dns_records/{record_id}",
                   data=json.dumps({"content": current_ip}).encode(),
