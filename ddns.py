@@ -31,9 +31,12 @@ def get_zone_id():
     req = Request(url=f"{endpoint}?name={zone}",
                   headers=headers,
                   )
-    res = json.loads(urlopen(req).read())["result"][0]
+    res = json.loads(urlopen(req).read())["result"]
 
-    return res["id"]
+    if len(res) == 0:
+        raise ValueError("Invalid CF_ZONE")
+
+    return res[0]["id"]
 
 
 def get_record_data(zone_id):
@@ -44,9 +47,15 @@ def get_record_data(zone_id):
     req = Request(url=f"{endpoint}/{zone_id}/dns_records?name={record}",
                   headers=headers,
                   )
-    res = json.loads(urlopen(req).read())["result"][0]
+    res = json.loads(urlopen(req).read())["result"]
 
-    return [res["id"], res["type"], res["content"]]
+    if len(res) == 0:
+        raise ValueError("Invalid CF_RECORD")
+    elif res[0]["type"] != 'A':
+        # Can only update record type A
+        raise ValueError("Record is not type A")
+
+    return [res[0]["id"], res[0]["content"]]
 
 
 def update_record(content, zone_id, record_id):
@@ -68,22 +77,17 @@ def main():
     if None in (zone, record, token):
         raise ValueError("Missing environment variables")
 
-    current_ip = get_ip()
-    print(f"Current IP: {current_ip}")
-
     zone_id = get_zone_id()
     print(f"Zone ID: {zone_id}")
 
-    record_id, record_type, record_address = get_record_data(zone_id)
+    record_id, record_ip = get_record_data(zone_id)
     print(f"Record ID: {record_id}")
-    print(f"Record Type: {record_type}")
-    print(f"Record Address: {record_address}")
+    print(f"Record IP: {record_ip}")
 
-    # Only updates record type A
-    if record_type != 'A':
-        raise ValueError("Zone is not a valid A record")
+    current_ip = get_ip()
+    print(f"Current IP: {current_ip}")
 
-    if current_ip == record_address:
+    if current_ip == record_ip:
         print("Dont need to update")
         return
 
