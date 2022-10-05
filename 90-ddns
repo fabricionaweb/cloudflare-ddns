@@ -4,8 +4,7 @@
 # settings
 ZONE="domain.com"
 RECORD="sub.domain.com"
-# you can generate the API Token on dashboard
-# https://api.cloudflare.com/#getting-started-requests
+# generate the API TOKEN in the dashboard https://dash.cloudflare.com/profile/api-tokens - Get a TOKEN not a KEY
 TOKEN=""
 
 # cloudflare api (dont need to change)

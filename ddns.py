@@ -4,9 +4,9 @@ from os import environ
 from urllib.request import urlopen, Request
 
 
-zone = environ.get("CF_ZONE")
-record = environ.get("CF_RECORD")
-token = environ.get("CF_TOKEN")
+zone = environ.get("CF_ZONE")     # domain.tld
+record = environ.get("CF_RECORD") # sub.domain.tld
+token = environ.get("CF_TOKEN")   # https://dash.cloudflare.com/profile/api-tokens - Get a TOKEN not a KEY
 
 endpoint = "https://api.cloudflare.com/client/v4/zones"
 headers = {"Authorization": f"Bearer {token}"}
