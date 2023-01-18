@@ -13,17 +13,19 @@ ENDPOINT="https://api.cloudflare.com/client/v4"
 logger -t hotplug "Running DDNS on interface: $INTERFACE for action: $ACTION"
 
 # only for wan interface and up/update actions
-if [ "$INTERFACE" = "wan" ] && [[ "$ACTION" = "ifup" || "$ACTION" = "ifupdate" ]]; then
-  # gets the ip from WAN (works only in bridge mode)
-  # https://openwrt.org/docs/guide-developer/network-scripting#get_wan_address
-  # . /lib/functions/network.sh
-  # network_flush_cache
-  # network_find_wan NET_IF
-  # network_get_ipaddr NET_ADDR "$NET_IF"
-  # logger -t hotplug "IP address: $NET_ADDR"
+if [[ "$INTERFACE" = "wan" || "$INTERFACE" = "wan6" ]] && [[ "$ACTION" = "ifup" || "$ACTION" = "ifupdate" ]]; then
+  if [ "$INTERFACE" = "wan" ]; then
+    URL="1.1.1.1"
+    TYPE="A"
+  fi
+
+  if [ "$INTERFACE" = "wan6" ]; then
+    URL="[2606:4700:4700::1111]"
+    TYPE="AAAA"
+  fi
 
   # gets the ip from internet
-  NET_ADDR=$(curl -sS -X GET "https://1.1.1.1/cdn-cgi/trace" | awk -F '=' '/ip/{print $2}')
+  NET_ADDR=$(curl -sS -X GET "https://$URL/cdn-cgi/trace" | awk -F '=' '/ip/{print $2}')
   logger -t hotplug "IP address: $NET_ADDR"
 
   # wait for dns be ready
@@ -37,7 +39,7 @@ if [ "$INTERFACE" = "wan" ] && [[ "$ACTION" = "ifup" || "$ACTION" = "ifupdate" ]
 
   # gets the dns record id
   # https://api.cloudflare.com/#dns-records-for-a-zone-list-dns-records
-  RECORD_ID=$(curl -sS -X GET "$ENDPOINT/zones/$ZONE_ID/dns_records?name=$RECORD" \
+  RECORD_ID=$(curl -sS -X GET "$ENDPOINT/zones/$ZONE_ID/dns_records?name=$RECORD&type=$TYPE" \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" | jsonfilter -e "@.result[0].id")
 
