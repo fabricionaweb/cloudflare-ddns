@@ -44,7 +44,7 @@ def get_record_data(zone_id):
     get the record (sub domain) id
     https://api.cloudflare.com/#dns-records-for-a-zone-list-dns-records
     """
-    req = Request(url=f"{endpoint}/{zone_id}/dns_records?name={record}",
+    req = Request(url=f"{endpoint}/{zone_id}/dns_records?name={record}&type=A",
                   headers=headers,
                   )
     res = json.loads(urlopen(req).read())["result"]
